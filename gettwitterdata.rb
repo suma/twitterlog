@@ -1,4 +1,6 @@
 
+# Readme: write your id and passowrd ontwitter.yml
+
 require 'pp'
 require 'pstore'
 require 'time'
@@ -23,10 +25,10 @@ Twitter::Client.configure do |conf|
 	#conf.proxy_pass = 'pass'
 
 	# Application names
-	conf.user_agent = ''
-	conf.application_name = ''
-	conf.application_version = 'v0.0.0'
-	conf.application_url = 'http://www.obfuscatism.net'
+	#conf.user_agent = ''
+	#conf.application_name = ''
+	#conf.application_version = 'v0.0.0'
+	#conf.application_url = 'http://www.obfuscatism.net'
 end
 
 db = PStore.new('./twitterdb')
@@ -67,6 +69,7 @@ tw = Twitter::Client.from_config('twitter.yml', 'account')
 			end
 			#pp m
 			d = [m.created_at, m.id, m.text]
+			# TODO: record most recent time on db
 			#pp d
 			ary.push(d)
 		end
