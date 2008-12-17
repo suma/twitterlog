@@ -33,52 +33,66 @@ end
 
 db = PStore.new('./twitterdb')
 
+getpast = false
 page = 0
 db.transaction do
 	if 0 < db.roots.size && 0 < db['tl'].size
 		# get last id
 		puts "db size: " + db['tl'].size.to_s
-		ary = db['tl']
-		page = db['page']
 	else
 		# init
 		db['tl'] = []
 		db['page'] = 0
+		db['recent'] = Time.gm(2006, 5)
+		db['old'] = Time.gm(2030)
+		getpast = true
 	end
+
+	page = db['page']
+	recent = db['recent']
+	old = db['old']
 end
-#return
+
 
 # Login
 tw = Twitter::Client.from_config('twitter.yml', 'account')
 
 #limit = tw.account_info(:rate_limit_status)
-#pp limit
 
-# Get past log
-3.times do 
-	db.transaction do
+db.transaction do
+	if getpast
 		tl = tw.timeline_for(:me, :page => page, :count => 200)
-		puts "tl size " + tl.size.to_s
-
-		ary = db['tl']
-		tl.each do |m|
-			if ary.index(m) != nil
-				puts "finished!!"
-				db['page'] = 0
-				exit 0
-			end
-			#pp m
-			d = [m.created_at, m.id, m.text]
-			# TODO: record most recent time on db
-			#pp d
-			ary.push(d)
-		end
-		puts "finished db"
-		pp ary
-
-		db['page'] = page + 1
-		page += 1
+	else
+		tl = tw.timeline_for(:me, :since => recent, :page => page, :count => 200)
 	end
+	puts "tl size " + tl.size.to_s
+
+	ary = db['tl']
+	tl.each do |m|
+		if ary.index(m) != nil
+			page = 0
+			break
+		else
+			page += 1
+		end
+		#pp m
+		d = [m.created_at, m.id, m.text]
+
+		# check most recent/old date
+		if recent < d[0]
+			recent = d[0]
+		end
+		if d[0] < old
+			old = d[0]
+		end
+
+		# push data to array
+		ary.push(d)
+	end
+
+	db['page'] = page
+	db['recent'] = recent
+	db['old'] = old
 end
 
 #pp tl
