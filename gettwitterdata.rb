@@ -33,7 +33,6 @@ end
 
 db = PStore.new('./twitterdb')
 
-getpast = false
 page = 0
 db.transaction do
 	if 0 < db.roots.size && 0 < db['tl'].size
@@ -45,12 +44,13 @@ db.transaction do
 		db['page'] = 0
 		db['recent'] = Time.gm(2006, 5)
 		db['old'] = Time.gm(2030)
-		getpast = true
+		db['getpast'] = true
 	end
 
 	page = db['page']
 	recent = db['recent']
 	old = db['old']
+	getpast = db['getpast']
 end
 
 
@@ -71,6 +71,7 @@ db.transaction do
 	tl.each do |m|
 		if ary.index(m) != nil
 			page = 0
+			db['getpast'] = false
 			break
 		else
 			page += 1
